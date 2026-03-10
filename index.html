@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code - Movie Generator</title>
+    <title>Dynamic Dumb Charades</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,186 +14,682 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #16DED4 0%, #0C8383 100%);
+            font-family: 'Inter', sans-serif;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 24px;
+            background: #0a0a1a;
+            overflow-x: hidden;
         }
 
+        /* Animated gradient background */
+        .bg-gradient {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(22, 222, 212, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+            animation: bgShift 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes bgShift {
+            0% { opacity: 0.8; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.1); }
+        }
+
+        /* Floating particles */
+        .particles {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(22, 222, 212, 0.3);
+            border-radius: 50%;
+            animation: float linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* ===== MAIN SPLIT LAYOUT ===== */
         .container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 500px;
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 32px;
+            max-width: 900px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            text-align: center;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            overflow: hidden;
+            animation: cardEntry 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(30px);
         }
 
-        .logo {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 20px;
-            display: block;
+        @keyframes cardEntry {
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 2em;
-        }
-
-        .subtitle {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 1em;
-        }
-
-        .qr-container {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 30px;
-            margin: 30px 0;
+        /* ===== LEFT SIDE — QR Code ===== */
+        .left-panel {
+            padding: 44px 36px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .qr-label {
+            color: rgba(22, 222, 212, 0.9);
+            font-weight: 600;
+            font-size: 0.8em;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
         #qrcode {
-            margin: 20px 0;
+            background: white;
+            padding: 16px;
+            border-radius: 16px;
+            display: inline-block;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-width: 100%;
+        }
+
+        #qrcode img,
+        #qrcode canvas {
+            display: block;
+            max-width: 100%;
+            height: auto !important;
+        }
+
+        .scan-hint {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.75em;
+            margin-top: 18px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .scan-hint svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+            flex-shrink: 0;
+        }
+
+        /* ===== RIGHT SIDE — Branding + Stats ===== */
+        .right-panel {
+            padding: 44px 36px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .logo-area {
+            margin-bottom: 28px;
+        }
+
+        .logo {
+            width: 110px;
+            height: 110px;
+            display: block;
+            margin: 0 auto 16px;
+            filter: drop-shadow(0 0 24px rgba(22, 222, 212, 0.25));
+            animation: logoPulse 4s ease-in-out infinite;
+        }
+
+        @keyframes logoPulse {
+            0%, 100% { filter: drop-shadow(0 0 24px rgba(22, 222, 212, 0.25)); }
+            50% { filter: drop-shadow(0 0 36px rgba(22, 222, 212, 0.45)); }
+        }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            color: #ffffff;
+            font-size: 1.65em;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 0.88em;
+            font-weight: 400;
+        }
+
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            padding: 5px 14px;
+            border-radius: 100px;
+            font-size: 0.68em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 24px;
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            50% { opacity: 0.6; box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
         }
 
         .stats {
-            display: flex;
-            justify-content: space-around;
-            margin: 20px 0;
-            gap: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+            margin-bottom: 24px;
         }
 
         .stat-box {
-            flex: 1;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 18px 14px;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-box:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(22, 222, 212, 0.2);
+            transform: translateY(-2px);
         }
 
         .stat-label {
-            color: #666;
-            font-size: 0.8em;
-            margin-bottom: 5px;
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 0.68em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
         }
 
         .stat-value {
-            color: #0C8383;
-            font-size: 1.8em;
-            font-weight: bold;
+            font-family: 'Space Grotesk', sans-serif;
+            color: #16DED4;
+            font-size: 2em;
+            font-weight: 700;
+            line-height: 1;
+            text-shadow: 0 0 20px rgba(22, 222, 212, 0.3);
         }
 
         .button {
-            background: linear-gradient(135deg, #16DED4 0%, #0C8383 100%);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 50px;
-            font-size: 1.1em;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.7);
+            padding: 12px 28px;
+            border-radius: 14px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85em;
+            font-weight: 500;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin: 10px 5px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .button:hover {
+            background: rgba(255, 68, 68, 0.1);
+            border-color: rgba(255, 68, 68, 0.3);
+            color: #ff6b6b;
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(22, 222, 212, 0.4);
+            box-shadow: 0 8px 24px rgba(255, 68, 68, 0.15);
         }
 
         .button:active {
             transform: translateY(0);
         }
 
-        .button.secondary {
-            background: #95a5a6;
+        .button svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
         }
 
-        .button.secondary:hover {
-            box-shadow: 0 10px 20px rgba(149, 165, 166, 0.4);
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 14px 24px;
+            border-radius: 14px;
+            font-size: 0.9em;
+            z-index: 100;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            white-space: nowrap;
         }
 
-        .instructions {
-            background: #e0f7f6;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-            color: #0C8383;
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
         }
 
-        @media (max-width: 600px) {
+        .toast.success { border-color: rgba(16, 185, 129, 0.3); }
+        .toast.error { border-color: rgba(255, 68, 68, 0.3); }
+
+        /* ===== RESPONSIVE ===== */
+
+        /* Large desktop */
+        @media (min-width: 1200px) {
             .container {
-                padding: 30px 20px;
+                max-width: 960px;
+            }
+
+            .logo {
+                width: 130px;
+                height: 130px;
+            }
+
+            h1 {
+                font-size: 1.85em;
+            }
+
+            .left-panel,
+            .right-panel {
+                padding: 52px 44px;
+            }
+        }
+
+        /* Tablet landscape */
+        @media (max-width: 900px) {
+            .container {
+                max-width: 740px;
+            }
+
+            .left-panel,
+            .right-panel {
+                padding: 36px 28px;
+            }
+
+            .logo {
+                width: 90px;
+                height: 90px;
+            }
+
+            h1 {
+                font-size: 1.45em;
+            }
+
+            .stat-value {
+                font-size: 1.7em;
+            }
+        }
+
+        /* Tablet portrait / large phones — stack to single column */
+        @media (max-width: 680px) {
+            body {
+                padding: 16px;
+                align-items: flex-start;
+                padding-top: 24px;
+            }
+
+            .container {
+                grid-template-columns: 1fr;
+                border-radius: 24px;
+                max-width: 440px;
+            }
+
+            .left-panel {
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+                padding: 32px 24px;
+                order: 2;
+            }
+
+            .right-panel {
+                padding: 32px 24px;
+                order: 1;
+            }
+
+            .logo {
+                width: 76px;
+                height: 76px;
+            }
+
+            .logo-area {
+                margin-bottom: 20px;
+            }
+
+            h1 {
+                font-size: 1.35em;
+            }
+
+            .subtitle {
+                font-size: 0.82em;
+            }
+
+            .scan-hint {
+                font-size: 0.72em;
+            }
+
+            .stat-value {
+                font-size: 1.7em;
+            }
+
+            .button {
+                width: 100%;
+                justify-content: center;
+                padding: 14px 24px;
+            }
+
+            .toast {
+                left: 16px;
+                right: 16px;
+                transform: translateX(0) translateY(-100px);
+                white-space: normal;
+                text-align: center;
+            }
+
+            .toast.show {
+                transform: translateX(0) translateY(0);
+            }
+        }
+
+        /* Small phones (iPhone SE, Galaxy S, etc.) */
+        @media (max-width: 400px) {
+            body {
+                padding: 8px;
+                padding-top: 12px;
+            }
+
+            .container {
+                border-radius: 20px;
+            }
+
+            .left-panel,
+            .right-panel {
+                padding: 24px 18px;
+            }
+
+            #qrcode {
+                padding: 10px;
             }
 
             .logo {
                 width: 60px;
                 height: 60px;
+                margin-bottom: 12px;
+            }
+
+            .logo-area {
+                margin-bottom: 16px;
             }
 
             h1 {
+                font-size: 1.15em;
+            }
+
+            .subtitle {
+                font-size: 0.78em;
+            }
+
+            .qr-label {
+                font-size: 0.72em;
+                margin-bottom: 14px;
+            }
+
+            .live-badge {
+                font-size: 0.62em;
+                padding: 4px 10px;
+                margin-bottom: 16px;
+            }
+
+            .stat-value {
                 font-size: 1.5em;
             }
 
+            .stat-label {
+                font-size: 0.62em;
+            }
+
             .stats {
-                flex-direction: column;
-                gap: 10px;
+                gap: 8px;
+                margin-bottom: 18px;
+            }
+
+            .stat-box {
+                padding: 14px 10px;
+                border-radius: 12px;
+            }
+
+            .button {
+                font-size: 0.8em;
+                padding: 12px 20px;
+                border-radius: 12px;
+            }
+
+            .scan-hint {
+                font-size: 0.68em;
+                margin-top: 12px;
+            }
+        }
+
+        /* Very small screens (below 340px like iPhone 5/SE1) */
+        @media (max-width: 340px) {
+            .left-panel,
+            .right-panel {
+                padding: 20px 14px;
+            }
+
+            h1 {
+                font-size: 1em;
+            }
+
+            .logo {
+                width: 50px;
+                height: 50px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+
+            .stat-box {
+                padding: 12px 10px;
+            }
+
+            .stat-value {
+                font-size: 1.3em;
+            }
+        }
+
+        /* Landscape phones */
+        @media (max-height: 500px) and (orientation: landscape) {
+            body {
+                align-items: flex-start;
+                padding: 12px;
+            }
+
+            .container {
+                grid-template-columns: 1fr 1fr;
+                max-width: 700px;
+            }
+
+            .left-panel {
+                padding: 24px 20px;
+                border-right: 1px solid rgba(255, 255, 255, 0.06);
+                border-bottom: none;
+                order: 0;
+            }
+
+            .right-panel {
+                padding: 24px 20px;
+                order: 0;
+            }
+
+            .logo {
+                width: 52px;
+                height: 52px;
+                margin-bottom: 8px;
+            }
+
+            .logo-area {
+                margin-bottom: 12px;
+            }
+
+            h1 {
+                font-size: 1.15em;
+            }
+
+            .live-badge {
+                margin-bottom: 12px;
+            }
+
+            .stat-box {
+                padding: 10px 8px;
+            }
+
+            .stat-value {
+                font-size: 1.4em;
             }
         }
     </style>
 </head>
 <body>
+    <div class="bg-gradient"></div>
+    <div class="particles" id="particles"></div>
+    <div class="toast" id="toast"></div>
+
     <div class="container">
-        <img src="logo.png" alt="Logo" class="logo">
-        <h1>Dynamic Dumb Charades</h1>
-
-        <div class="qr-container">
-            <p style="color: #0C8383; font-weight: bold; margin-bottom: 10px;">Scan this QR Code to get a random movie!</p>
+        <!-- LEFT: QR Code -->
+        <div class="left-panel">
+            <p class="qr-label">Scan to Play</p>
             <div id="qrcode"></div>
-        </div>
-        <div class="stats">
-            <div class="stat-box">
-                <div class="stat-label">Remaining</div>
-                <div class="stat-value" id="remaining">-</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">Shown</div>
-                <div class="stat-value" id="shown">-</div>
-            </div>
+            <p class="scan-hint">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                Point your phone camera at the QR code
+            </p>
         </div>
 
-        <button class="button secondary" onclick="resetMovies()">Reset List</button>
+        <!-- RIGHT: Logo + Branding + Stats -->
+        <div class="right-panel">
+            <div class="logo-area">
+                <img src="logo.png" alt="Logo" class="logo">
+                <h1>Dynamic Dumb Charades</h1>
+                <p class="subtitle">Scan. Act. Guess. Repeat.</p>
+            </div>
+
+            <div class="live-badge">
+                <span class="live-dot"></span>
+                Auto-refreshing
+            </div>
+
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-label">Remaining</div>
+                    <div class="stat-value" id="remaining">&mdash;</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Shown</div>
+                    <div class="stat-value" id="shown">&mdash;</div>
+                </div>
+            </div>
+
+            <button class="button" onclick="resetMovies()">
+                <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                Reset List
+            </button>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
-        const BASE_URL = 'https://dynamic-movie-429498537564.europe-west1.run.app/'; // 👈 CHANGE THIS
-        
+        const BASE_URL = 'https://dynamic-movie-429498537564.europe-west1.run.app/';
         const API_URL = BASE_URL;
         const MOVIE_URL = `${BASE_URL}/movie`;
 
-        // Generate QR code
+        // Create floating particles
+        (function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.width = p.style.height = (Math.random() * 4 + 2) + 'px';
+                p.style.animationDuration = (Math.random() * 15 + 10) + 's';
+                p.style.animationDelay = (Math.random() * 10) + 's';
+                p.style.opacity = Math.random() * 0.5 + 0.1;
+                container.appendChild(p);
+            }
+        })();
+
+        // Generate QR code — responsive size
+        const qrSize = Math.min(220, window.innerWidth - 120);
         new QRCode(document.getElementById("qrcode"), {
             text: MOVIE_URL,
-            width: 256,
-            height: 256,
+            width: qrSize,
+            height: qrSize,
             colorDark: "#0C8383",
             colorLight: "#ffffff",
             correctLevel: QRCode.CorrectLevel.H
         });
 
-        // Load status on page load
+        // Toast notifications
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Animate stat value changes
+        function animateValue(el, newValue) {
+            const current = el.textContent;
+            if (current === String(newValue)) return;
+            el.style.transform = 'scale(1.15)';
+            el.style.transition = 'transform 0.2s ease';
+            el.textContent = newValue;
+            setTimeout(() => { el.style.transform = 'scale(1)'; }, 200);
+        }
+
+        // Load status
         window.addEventListener('DOMContentLoaded', function() {
             loadStatus();
-            // Refresh status every 5 seconds
             setInterval(loadStatus, 5000);
         });
 
@@ -199,33 +697,26 @@
             try {
                 const response = await fetch(`${API_URL}/api/status`);
                 const data = await response.json();
-
-                document.getElementById('remaining').textContent = data.remaining;
-                document.getElementById('shown').textContent = data.shown;
+                animateValue(document.getElementById('remaining'), data.remaining);
+                animateValue(document.getElementById('shown'), data.shown);
             } catch (error) {
                 console.error('Failed to load status:', error);
             }
         }
 
         async function resetMovies() {
-            if (!confirm('Are you sure you want to reset the movie list?')) {
-                return;
-            }
-
+            if (!confirm('Are you sure you want to reset the movie list?')) return;
             try {
-                const response = await fetch(`${API_URL}/api/reset`, {
-                    method: 'POST'
-                });
+                const response = await fetch(`${API_URL}/api/reset`, { method: 'POST' });
                 const data = await response.json();
-
                 if (response.ok) {
-                    alert('Movie list reset successfully!');
+                    showToast('Movie list reset successfully!', 'success');
                     loadStatus();
                 } else {
                     throw new Error(data.message || 'Failed to reset movies');
                 }
             } catch (error) {
-                alert('Error: ' + error.message);
+                showToast('Error: ' + error.message, 'error');
             }
         }
     </script>
