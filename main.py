@@ -7,8 +7,12 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# File to store remaining movies (use environment variable for persistent storage)
-MOVIES_FILE = os.environ.get('MOVIES_FILE', 'movies.json')
+# File to store remaining movies
+# Vercel serverless has a read-only filesystem except /tmp/
+if os.environ.get('VERCEL'):
+    MOVIES_FILE = '/tmp/movies.json'
+else:
+    MOVIES_FILE = os.environ.get('MOVIES_FILE', 'movies.json')
 
 
 
