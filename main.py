@@ -4,6 +4,7 @@ import random
 import json
 import os
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__)
 CORS(app)
 
@@ -147,17 +148,17 @@ def save_movies(movies):
 @app.route('/')
 def index():
     """Serve the QR code page"""
-    return send_from_directory('.', 'index.html')
+    return send_from_directory(BASE_DIR, 'index.html')
 
 @app.route('/movie')
 def movie_page():
     """Serve the movie display page"""
-    return send_from_directory('.', 'movie.html')
+    return send_from_directory(BASE_DIR, 'movie.html')
 
 @app.route('/logo.png')
 def logo():
     """Serve the logo image"""
-    return send_from_directory('.', 'logo.png')
+    return send_from_directory(BASE_DIR, 'logo.png')
 
 @app.route('/api/movie', methods=['GET'])
 def get_random_movie():
