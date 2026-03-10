@@ -150,6 +150,11 @@ def movie_page():
     """Serve the movie display page"""
     return send_from_directory('.', 'movie.html')
 
+@app.route('/logo.png')
+def logo():
+    """Serve the logo image"""
+    return send_from_directory('.', 'logo.png')
+
 @app.route('/api/movie', methods=['GET'])
 def get_random_movie():
     """Get a random movie and remove it from the list"""

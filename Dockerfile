@@ -14,6 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY main.py .
 COPY index.html .
 COPY movie.html .
+COPY logo.png .
 
 # Create directory for persistent storage
 RUN mkdir -p /app/data
